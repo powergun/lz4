@@ -33,3 +33,12 @@ bin/
 # Windows / Msys
 nul
 ld.exe*
+
+.idea
+cmake-build-debug
+build
+*.py
+*.swp
+*~
+.gdb_history
+
