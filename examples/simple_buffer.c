@@ -33,6 +33,8 @@ static long fileSize(FILE* fp) {
 static void testMain(void) {
     const char* path = "/tmp/asm.txt";
     FILE* fp = fopen(path, "r");
+    assert(fp);
+
     long sz = fileSize(fp);
     char* buf = malloc(sz);
     assert(1 == fread(buf, sz, 1, fp));
@@ -49,7 +51,19 @@ static void testMain(void) {
     fclose(wfp);
 
     free(buf);
+    
+    char *decompressed_data = malloc(sz);
+    int decompressed_data_size = LZ4_decompress_safe(
+            compressed_data, decompressed_data, 
+            compressed_data_size, max_dst_size);
+    assert(decompressed_data_size >= 0);
+    
+    FILE* wwfp = fopen("/tmp/asm.txt.dup", "w");
+    fwrite(decompressed_data, decompressed_data_size, 1, wwfp);
+    fclose(wwfp);
+
     free(compressed_data);
+    free(decompressed_data);
 
 }
 
