@@ -12,7 +12,8 @@
 #include <stdio.h>   // For printf()
 #include <string.h>  // For memcmp()
 #include <stdlib.h>  // For exit()
-
+#include <string.h>
+#include <assert.h>
 /*
  * Easy show-error-and-bail function.
  */
@@ -22,11 +23,46 @@ void run_screaming(const char *message, const int code) {
   return;
 }
 
+static long fileSize(FILE* fp) {
+    assert(0 == fseek(fp, 0, SEEK_END));
+    long sz = ftell(fp);
+    rewind(fp);
+    return sz;
+}
+
+static void testMain(void) {
+    const char* path = "/tmp/asm.txt";
+    FILE* fp = fopen(path, "r");
+    long sz = fileSize(fp);
+    char* buf = malloc(sz);
+    assert(1 == fread(buf, sz, 1, fp));
+    fclose(fp);
+
+    const int max_dst_size = LZ4_compressBound(sz);
+    char* compressed_data = malloc(max_dst_size);
+    const int compressed_data_size = LZ4_compress_default(
+            buf, compressed_data, sz, max_dst_size);
+    assert(compressed_data_size >= 0);
+
+    FILE* wfp = fopen("/tmp/asm.txt.lz4", "w");
+    fwrite(compressed_data, compressed_data_size, 1, wfp);
+    fclose(wfp);
+
+    free(buf);
+    free(compressed_data);
+
+}
+
+int main(void) {
+    testMain();
+    return 0;
+}
+
 
 /*
  * main
  */
-int main(void) {
+int __main(void) {
   /* Introduction */
   // Below we will have a Compression and Decompression section to demonstrate.
   // There are a few important notes before we start:
